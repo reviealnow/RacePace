@@ -1,0 +1,6 @@
+streamlit>=1.35
+pandas>=2.0
+shapely>=2.0
+pyproj>=3.5
+fitparse>=1.2
+plotly>=5.0

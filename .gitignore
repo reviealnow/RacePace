@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.sites-runtime/
+.sites-checkout/
+*.tar.gz
+.env*
+!.env.example
+*.fit
+*.tcx
+*.gpx
+*.sqlite*
+*.db
+__pycache__/
+.venv/
+.DS_Store
