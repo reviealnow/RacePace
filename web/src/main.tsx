@@ -19,6 +19,9 @@ function initialSettings(): Settings {
 }
 function RouteMap({ language }: { language: Language }) {
   const t = (text: TranslationKey) => translate(language, text);
+  const languageRef = useRef(language);
+  const basemapRef = useRef<ReturnType<typeof import('./basemap').createBasemap> | null>(null);
+  const [basemapError, setBasemapError] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -26,7 +29,11 @@ function RouteMap({ language }: { language: Language }) {
     if (!ref.current) return;
     const map = L.map(ref.current, { scrollWheelZoom: false, zoomControl: false, zoomAnimation: false }).setView([25.055, 121.54], 13);
     mapRef.current = map;
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19 }).addTo(map);
+    let disposed = false;
+    // Load the vector renderer separately so pace controls remain quick to load.
+    import('./basemap').then(({ createBasemap }) => {
+      if (!disposed) basemapRef.current = createBasemap(map, languageRef.current, () => { if (!disposed) setBasemapError(true); });
+    }).catch(() => { if (!disposed) setBasemapError(true); });
     const route = L.polyline(course.coordinates.map(([lon, lat]) => [lat, lon] as [number, number]), { color: '#216857', weight: 5, opacity: 0.95 }).addTo(map);
     map.fitBounds(route.getBounds(), { padding: [32, 32] });
     const marker = (lat: number, lon: number, label: string, title: string, finish = false) => L.marker([lat, lon], { title, icon: L.divIcon({ className: '', html: `<span class="map-pin ${finish ? 'finish' : ''}">${label}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] }) }).bindPopup(title).addTo(map);
@@ -35,9 +42,11 @@ function RouteMap({ language }: { language: Language }) {
       ...course.checkpoints.map((g, i) => marker(g.lat, g.lon, i === 3 ? 'F' : g.id, g.name, i === 3)),
     ];
     const observer = new ResizeObserver(() => map.invalidateSize()); observer.observe(ref.current);
-    return () => { observer.disconnect(); map.remove(); mapRef.current = null; markersRef.current = []; };
+    return () => { disposed = true; observer.disconnect(); basemapRef.current?.destroy(); basemapRef.current = null; map.remove(); mapRef.current = null; markersRef.current = []; };
   }, []);
   useEffect(() => {
+    languageRef.current = language;
+    basemapRef.current?.setLanguage(language);
     const map = mapRef.current;
     if (!map) return;
     const zoom = L.control.zoom({ zoomInTitle: t('放大'), zoomOutTitle: t('縮小') }).addTo(map);
@@ -49,7 +58,7 @@ function RouteMap({ language }: { language: Language }) {
     });
     return () => { zoom.remove(); };
   }, [language]);
-  return <div ref={ref} className="map" role="region" aria-label={t("台北半馬 KML 路線地圖，可使用縮放按鈕與標記查看關門點")} />;
+  return <><div ref={ref} className="map" role="region" aria-label={t("台北半馬 KML 路線地圖，可使用縮放按鈕與標記查看關門點")} />{basemapError && <p className="hint" role="status">{t('部分底圖無法載入，請重新整理頁面；賽道路線仍可查看。')}</p>}</>;
 }
 function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage);

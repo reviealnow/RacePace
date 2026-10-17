@@ -1,6 +1,7 @@
 export type Language = 'zh' | 'en';
 
 const english = {
+  "部分底圖無法載入，請重新整理頁面；賽道路線仍可查看。": "Some map details could not load. Refresh to try again; the race route is still available.",
   "跳至主要內容": "Skip to content",
   "RacePace 首頁": "RacePace home",
   "個人規劃空間": "Personal workspace",

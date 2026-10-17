@@ -6,7 +6,17 @@ This is Milestone 1 from the system design: route viewing, pace simulation and a
 
 The initial version was saved for review, then deployed privately at the user's request. Subsequent authorized updates preserve owner-only access. The live URL is https://racepace-taipei-training.oakenocean2048.chatgpt.site.
 
-## Current release — EN/ZH language switch
+## Current release — translated basemap labels
+
+- Deployed successfully on 2026-10-17; access remains owner-private.
+- Saved version ID: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_c52a0d936bb081919e2ea85f56a1a9fe`
+- Deployment ID: `appgdep_6ad34624ab08819180ae77fcf58a49e5`
+- Sites source commit: `8fef935db5ffd9b211c536e84c5b738874f84967`
+- OpenFreeMap vector labels now follow EN/ZH for geographic names. Missing translations fall back to the source name. Route geometry, zoom and checkpoint popups remain intact when switching.
+- The map renderer loads separately and its worker is bundled on the same origin. Provider attribution remains visible.
+- Verified: ten tests, TypeScript and production build, course-data validation, production preview and live English map rendering; local EN/ZH switching and checkpoint popups. Label tests compile the actual MapLibre formatted text-field expression.
+
+## Previous release — EN/ZH language switch
 
 - Deployed successfully on 2026-10-17; access remains owner-private.
 - Saved version ID: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_9c448e4f6c7881919a500c2e68a5dfc7`
@@ -44,7 +54,7 @@ Verified in the browser: presets and custom pace validation, delayed-start risk,
 3. Check the preview on desktop and mobile widths: preset/custom pace, late-start risk, invalid input, editable cutoffs, persistence, route markers and CSV export.
 4. Keep full race prediction distinct from real workout analysis. No sample workout metrics are presented.
 
-Eight unit tests cover all 12 supplied golden predictions, declared/geometry distance separation, start delays, risk boundaries, invalid input and CSV labeling. TypeScript checks run in the production build. The CI workflow checks these same source assets and calculations; it does not deploy.
+Ten unit tests cover all 12 supplied golden predictions, declared/geometry distance separation, start delays, risk boundaries, invalid input, CSV labeling and map-label language selection/fallbacks. TypeScript checks run in the production build. The CI workflow checks these same source assets and calculations; it does not deploy.
 
 ## Source and packaging
 

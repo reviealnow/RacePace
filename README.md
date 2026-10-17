@@ -4,7 +4,7 @@ Private half-marathon pace planning for the supplied Taipei course, in Tradition
 
 ## Current scope — Milestone 1
 
-- Interactive Leaflet route map with 1,847 original KML coordinates and four checkpoints.
+- Interactive Leaflet route map with 1,847 original KML coordinates and four checkpoints; OpenFreeMap vector place/street labels follow EN/ZH.
 - 5:30, 6:30, 7:00 and custom pace; start delay; arrival and cutoff-margin predictions.
 - Separate declared race distances and KML geometry distances throughout.
 - Editable start/cutoff times, browser-local settings and recent change history.
@@ -12,7 +12,9 @@ Private half-marathon pace planning for the supplied Taipei course, in Tradition
 - Responsive desktop/mobile layout and an explicit future-workout-import empty state.
 - EN/ZH interface, map labels, validation, settings history and CSV exports; changing language preserves race settings.
 
-FIT/TCX/GPX import, GPS matching, workout history, D1/R2 storage and multi-user accounts are **not implemented** in this first version. No workout data is collected. Map tiles load from OpenStreetMap and typography from Google Fonts; settings remain in the current browser. The site is deployed privately with access limited to its owner.
+FIT/TCX/GPX import, GPS matching, workout history, D1/R2 storage and multi-user accounts are **not implemented** in this first version. No workout data is collected. Vector map data, styling and map fonts load from OpenFreeMap (based on OpenStreetMap); interface typography loads from Google Fonts. Settings remain in the current browser. The site is deployed privately with access limited to its owner.
+
+The basemap uses MapLibre through its Leaflet adapter. EN prefers English names, then Latin-script names; ZH prefers Traditional Chinese names, then Chinese names. Missing translations fall back to the original geographic name. Road route numbers stay unchanged. The renderer and its worker are bundled separately so the pace controls can load without waiting for map resources.
 
 ## Run locally
 
