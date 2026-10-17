@@ -55,7 +55,10 @@ At 7:00/km, Python formats the fractional finish time as **09:27:40** by truncat
 | `legacy-python/` | Unmodified original app, requirements, README and KML |
 | `data/fixtures/` | Original supplied CSV fixtures |
 | `scripts/prepare_course.py` | Deterministic data generation and verification |
+| `docs/DATA_FLOW_DIAGRAM.md` | Data flows for the live app, course preparation, deployment and legacy workout analysis |
 | `docs/DEPLOYMENT.md` | Save/deploy process, scope and verification |
 | `.github/workflows/ci.yml` | Data checks, tests, typecheck and production build |
 
 GitHub remains the editable source repository. Sites uses a separate synchronized release checkout. A GitHub push alone does not deploy the site. See [deployment notes](docs/DEPLOYMENT.md).
+
+See the [Data flow diagram](docs/DATA_FLOW_DIAGRAM.md) for how course data, pace settings, map labels and exports move through the current implementation.
