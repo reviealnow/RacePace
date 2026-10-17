@@ -1,6 +1,6 @@
 # RacePace
 
-Private, Traditional Chinese half-marathon pace planning for the supplied Taipei course. This repository contains the original Python prototype and the first React/TypeScript migration described in `RacePace_SYSTEM_DESIGN_v1.md`.
+Private half-marathon pace planning for the supplied Taipei course, in Traditional Chinese and English. Use the EN/ZH buttons in the header to switch languages; your choice is remembered in this browser. This repository contains the original Python prototype and the first React/TypeScript migration described in `RacePace_SYSTEM_DESIGN_v1.md`.
 
 ## Current scope — Milestone 1
 
@@ -10,8 +10,9 @@ Private, Traditional Chinese half-marathon pace planning for the supplied Taipei
 - Editable start/cutoff times, browser-local settings and recent change history.
 - CSV prediction export and GeoJSON course download.
 - Responsive desktop/mobile layout and an explicit future-workout-import empty state.
+- EN/ZH interface, map labels, validation, settings history and CSV exports; changing language preserves race settings.
 
-FIT/TCX/GPX import, GPS matching, workout history, D1/R2 storage and multi-user accounts are **not implemented** in this first version. No workout data is collected. Map tiles load from OpenStreetMap and typography from Google Fonts; settings remain in the current browser. The site is registered as private and follows the design plan's save-before-publication gate.
+FIT/TCX/GPX import, GPS matching, workout history, D1/R2 storage and multi-user accounts are **not implemented** in this first version. No workout data is collected. Map tiles load from OpenStreetMap and typography from Google Fonts; settings remain in the current browser. The site is deployed privately with access limited to its owner.
 
 ## Run locally
 

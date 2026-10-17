@@ -4,7 +4,16 @@
 
 This is Milestone 1 from the system design: route viewing, pace simulation and a truthful workout-import empty state. The original Streamlit server cannot be deployed as this static Sites app; its working features have been migrated to React/TypeScript with Vite.
 
-The design document sections 8 and 10 require saving a reviewable version before publication. This release therefore uses `save_site_version`, without a deploy operation. The registered Site stays owner-private. A reserved Site URL is not evidence that it is live.
+The initial version was saved for review, then deployed privately at the user's request. Subsequent authorized updates preserve owner-only access. The live URL is https://racepace-taipei-training.oakenocean2048.chatgpt.site.
+
+## Current release — EN/ZH language switch
+
+- Deployed successfully on 2026-10-17; access remains owner-private.
+- Saved version ID: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_9c448e4f6c7881919a500c2e68a5dfc7`
+- Deployment ID: `appgdep_6ad332f431008191a9ddad470b695c52`
+- Sites source commit: `77273eb55f73b4f92d879575ea0d6ddd56bdd679`
+- EN/ZH header buttons switch the interface, map controls/popups, validation, historical settings labels and CSV export. The preference persists locally without changing race settings; the document language and title update for accessibility.
+- Verified: all eight calculation tests, TypeScript and production build, bilingual CSV values, refresh persistence, existing settings/history, both import views, map zoom/label switching and mobile layout at 390 px without page-wide overflow. Map state is preserved across language changes.
 
 ## Identity
 
@@ -17,9 +26,9 @@ The design document sections 8 and 10 require saving a reviewable version before
 
 Never recreate the Site when this manifest is present. Reuse its project ID and a fresh short-lived source credential when necessary. Do not commit credentials.
 
-## Saved release
+## Initial release history
 
-- Saved successfully: **version 1**, unpublished; no deployment was created.
+- Version 1 was first saved unpublished, then deployed privately at the user's request (deployment `appgdep_6ad32fbe9f0881919f2d69722ac94cba`).
 - Saved version ID: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_7d10d23632ac8191805170fef9432cd0`
 - Verified pushed Sites source commit: `97a0240afb0fa5347067c4a5e8a55d2fde4df95b`
 - Archive SHA-256: `ed81e4c4447f0af388363eaf15e1046f8954f61113848bbe14821da4870912b9`
