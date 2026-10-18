@@ -75,3 +75,7 @@ There are no backend migrations or hosted workout files in this release. Rollbac
 - Milestone 2: FIT/TCX/GPX parsing, input validation, monotonic GPS matching, uncertain crossing handling, partial-run tests and analysis exports.
 - Milestone 3: private durable history, identity/ownership checks, deletion and optional raw-file retention.
 - Real iPhone/Safari validation remains separate from desktop responsive-width checks.
+
+## Unpublished workout replay/export enhancement — 2026-10-18
+
+The feature branch `feature/workout-replay-export` extends the existing static app with local workout replay and H.264 MP4 export. No hosting manifest, storage, identity or audience change is required. See [implementation, measured video verification and release limits](WORKOUT_REPLAY_EXPORT.md). This section does not indicate a new live release: review and the existing saved-version/deploy sequence are still pending.
