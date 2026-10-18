@@ -4,7 +4,7 @@ Private half-marathon pace planning for the supplied Taipei course, in Tradition
 
 ## Current scope — Milestone 1
 
-**Feature branch awaiting deployment:** a five-second, GPS-timestamp-driven runner replay with paired Apple Health XML + GPX import and downloadable H.264 MP4 export is implemented in this checkout but is not deployed. See [Runner replay preview](docs/RUNNER_REPLAY_PREVIEW.md) for controls, supported formats and validation. The scope below describes the current live release.
+**Deployed enhancement (2026-10-18):** a five-second, GPS-timestamp-driven runner replay with paired Apple Health XML + GPX import and downloadable H.264 MP4 export is now deployed privately. See [Runner replay preview](docs/RUNNER_REPLAY_PREVIEW.md) for controls, supported formats and validation. The scope below describes the original Milestone 1 foundation; see the preview notes for the added replay/export features.
 
 - Interactive Leaflet route map with 1,847 original KML coordinates and four checkpoints; OpenFreeMap vector place/street labels follow EN/ZH.
 - 5:30, 6:30, 7:00 and custom pace; start delay; arrival and cutoff-margin predictions.
@@ -14,7 +14,7 @@ Private half-marathon pace planning for the supplied Taipei course, in Tradition
 - Responsive desktop/mobile layout and an explicit future-workout-import empty state.
 - EN/ZH interface, map labels, validation, settings history and CSV exports; changing language preserves race settings.
 
-The deployed Milestone 1 release does not include workout import. This feature branch adds local GPX/TCX/FIT import, optional Apple Health XML enrichment and MP4 replay export. GPS course matching, workout history, D1/R2 storage and multi-user accounts remain unimplemented. No workout data is collected. Vector map data, styling and map fonts load from OpenFreeMap (based on OpenStreetMap); interface typography loads from Google Fonts. Settings remain in the current browser. The site is deployed privately with access limited to its owner.
+The original Milestone 1 release did not include workout import. The current release adds local GPX/TCX/FIT import, optional Apple Health XML enrichment and MP4 replay export. GPS course matching, workout history, D1/R2 storage and multi-user accounts remain unimplemented. No workout data is collected. Vector map data, styling and map fonts load from OpenFreeMap (based on OpenStreetMap); interface typography loads from Google Fonts. Settings remain in the current browser. The site is deployed privately with access limited to its owner.
 
 The basemap uses MapLibre through its Leaflet adapter. EN prefers English names, then Latin-script names; ZH prefers Traditional Chinese names, then Chinese names. Missing translations fall back to the original geographic name. Road route numbers stay unchanged. The renderer and its worker are bundled separately so the pace controls can load without waiting for map resources.
 

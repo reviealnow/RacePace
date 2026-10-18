@@ -6,7 +6,7 @@ This is Milestone 1 from the system design: route viewing, pace simulation and a
 
 The initial version was saved for review, then deployed privately at the user's request. Subsequent authorized updates preserve owner-only access. The live URL is https://racepace-taipei-training.oakenocean2048.chatgpt.site.
 
-## Current release — translated basemap labels
+## Previous release — translated basemap labels
 
 - Deployed successfully on 2026-10-17; access remains owner-private.
 - Saved version ID: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_c52a0d936bb081919e2ea85f56a1a9fe`
@@ -79,3 +79,18 @@ There are no backend migrations or hosted workout files in this release. Rollbac
 ## Unpublished workout replay/export enhancement — 2026-10-18
 
 The feature branch `feature/workout-replay-export` extends the existing static app with local workout replay and H.264 MP4 export. No hosting manifest, storage, identity or audience change is required. See [implementation, measured video verification and release limits](WORKOUT_REPLAY_EXPORT.md). This section does not indicate a new live release: review and the existing saved-version/deploy sequence are still pending.
+
+
+## Current release — workout replay and MP4 export (2026-10-18)
+
+Deployed successfully with owner-only access preserved.
+
+- GitHub application source: `efe55b3be19d61c18476a0644955be4e767f9317` on `feature/workout-replay-export` (PR #1 remains separate from deployment).
+- Sites source commit: `578aa59abd748c769e02df7b9094b065c1a44866`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_aa89c174e6a48191bb81980bacb46f15`.
+- Deployment: `appgdep_6ad4db11293081918acc5aab87157502`, terminal status `succeeded`.
+- Live URL: https://racepace-taipei-training.oakenocean2048.chatgpt.site
+- Includes timestamp-driven five-second workout replay, local imports, MP4 export/download, mobile full-route framing and EN/ZH.
+- Validation: 24 tests, production build, course golden checks and measured browser-generated five-second MP4s passed before packaging. Physical iPhone verification remains outstanding.
+
+This deployment supersedes the unpublished status recorded in earlier sections and review-time feature notes. It does not merge the GitHub PR.
