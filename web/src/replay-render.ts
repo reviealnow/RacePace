@@ -29,6 +29,9 @@ export function createReplayPainter(workout: Workout, language: Language, map: M
   ctx.fillStyle = '#f4f5ef'; ctx.fillRect(0, 0, VIDEO.width, VIDEO.height);
   ctx.fillStyle = '#234e40'; ctx.font = 'bold 27px system-ui'; ctx.fillText('RacePace', 32, 44);
   ctx.font = '17px system-ui'; ctx.fillText(text('YOUR RUN · FIVE SECONDS', '你的跑程 · 精彩五秒'), 32, 74);
+  if (workout.points.some(p => p.originalTime !== undefined)) {
+    ctx.font = '13px system-ui'; ctx.fillText(text('Some GPS timing / speed estimated', '部分 GPS 時間／速度為估算值'), 32, 110);
+  }
   ctx.textAlign = 'right'; ctx.fillText(workout.demo ? text('SYNTHETIC DEMO', '模擬示範') : text('WORKOUT REPLAY', '運動重播'), 928, 42);
   ctx.font = 'bold 24px system-ui'; ctx.fillText(`${(workout.distance / 1000).toFixed(2)} km   ·   ${paceLabel(workout.averageSpeed)} /km`, 928, 78);
   ctx.font = '16px system-ui'; ctx.fillText(`${text('Duration', '運動時間')} ${Math.floor(workout.duration / 60)}:${String(Math.floor(workout.duration % 60)).padStart(2, '0')}   ·   ${text('Average', '平均')} ${workout.averageSpeed.toFixed(1)} km/h`, 928, 110);

@@ -1,3 +1,6 @@
+import WorkoutLibrary from './WorkoutLibrary';
+import BasemapNotice from './BasemapNotice';
+import type { BasemapStatus } from './basemap-recovery';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import course from './data/course.json';
@@ -64,15 +67,16 @@ export default function WorkoutReplay({ language }: { language: Language }) {
     invalid: text('The file is malformed or unreadable. Export it again and retry.', '檔案格式損壞或無法讀取，請重新匯出後再試。'),
     points: text('A route needs at least two valid GPS points. XML workout summaries alone do not contain a replayable route.', '路線至少需兩個有效 GPS 點。僅有 XML 運動摘要無法重播路線。'),
     duration: text('The route must have a positive duration of at most seven days.', '路線須有有效時間，且不超過七天。'),
-    timestamps: text('GPS timestamps must include a timezone and follow recording order. Different positions cannot share one timestamp.', 'GPS 時間戳記須含時區並依紀錄順序遞增，不同位置不可共用相同時間。'),
+    timestamps: text('This route contains missing, out-of-order, or ambiguous GPS times that cannot be safely estimated. Try another workout export.', '此路線的 GPS 時間有缺漏、順序錯誤或無法安全估算的重複紀錄，請嘗試重新匯出運動檔案。'),
     health: text('Choose an Apple Health HealthData XML export and its matching GPX route.', '請選擇 Apple Health 的 HealthData XML 匯出檔及對應 GPX 路線。'),
     mismatch: text('No unique matching run was found in the XML. Use the original GPX filename and the full route from the same workout.', 'XML 中找不到唯一對應的跑步紀錄，請使用同次運動的完整 GPX，並保留原始檔名。'),
     multiple: text('Import one workout route at a time, with at most one Apple Health XML export.', '每次請匯入一個運動路線，最多搭配一個 Apple Health XML 匯出檔。'),
   };
   return <div className="workout-replay">
+    <WorkoutLibrary language={language} workout={workout} onOpen={next => {requestId.current++;setLoading(false);setWorkout(next);setStaticRoute(null);setHealthFile(null);setError('');}}/>
     <section className={`replay-import ${dragging ? 'is-dragging' : ''}`} onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); void loadFiles(Array.from(e.dataTransfer.files)); }} aria-label={text('Import workout', '匯入運動紀錄')}>
       <div className="replay-import-icon" aria-hidden="true">↥</div>
-      <div className="replay-import-copy"><strong>{text('Your whole run. Five seconds.', '完整跑程，五秒呈現。')}</strong><p>{text('Choose a GPX route, with Apple Health export.xml if available. Files stay on this device.', '選擇 GPX 路線，可一併加入 Apple Health export.xml。檔案僅在此裝置處理。')}</p></div>
+      <div className="replay-import-copy"><strong>{text('Your whole run. Five seconds.', '完整跑程，五秒呈現。')}</strong><p>{text('Choose a GPX route, with Apple Health export.xml if available. Files stay on this device unless you choose Save to my library.', '選擇 GPX 路線，可一併加入 Apple Health export.xml。檔案在此裝置處理，選擇「儲存到我的紀錄」才會上傳。')}</p></div>
       <label className={`primary replay-file ${loading ? 'is-loading' : ''}`}>{loading ? text('Reading…', '讀取中…') : text('Choose workout files', '選擇運動檔案')}<input type="file" multiple accept=".gpx,.xml,.tcx,.fit" disabled={loading} onChange={e => { void loadFiles(Array.from(e.target.files ?? [])); e.target.value = ''; }} aria-label={text('Choose workout files', '選擇運動檔案')}/></label>
     </section>
     {healthFile && <p className="replay-health-file">{text('Apple Health XML selected:', '已選擇 Apple Health XML：')} {healthFile.name} <button className="text-button" onClick={() => { requestId.current++; setLoading(false); setHealthFile(null); setWorkout(null); setStaticRoute(null); }}>{text('Clear files', '清除檔案')}</button></p>}
@@ -86,7 +90,8 @@ function ReplayPlayer({ workout, language, loading, onClear }: { workout: Workou
   const text = (en: string, zh: string) => language === 'en' ? en : zh;
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [mapError, setMapError] = useState(false);
+  const [basemapStatus, setBasemapStatus] = useState<BasemapStatus>('loading');
+  const [baseAttempt, setBaseAttempt] = useState(0);
   const canvas = useRef<HTMLDivElement>(null);
   const dot = useRef<L.CircleMarker | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -94,6 +99,7 @@ function ReplayPlayer({ workout, language, loading, onClear }: { workout: Workou
   const languageRef = useRef(language);
   const endpoints = useRef<L.Marker[]>([]);
   const position = positionAt(workout, elapsed);
+  const estimatedTimes = workout.points.filter(p => p.originalTime !== undefined).length;
   const progress = elapsed / workout.duration;
   const colour = speedColor(position.speed);
   const finished = elapsed >= workout.duration;
@@ -120,7 +126,7 @@ function ReplayPlayer({ workout, language, loading, onClear }: { workout: Workou
 
   useEffect(() => {
     if (!canvas.current) return;
-    setMapError(false);
+    setBasemapStatus('loading');
     let disposed = false;
     const map = L.map(canvas.current, { scrollWheelZoom: false, zoomControl: false, zoomAnimation: false, preferCanvas: true });
     mapRef.current = map;
@@ -128,8 +134,8 @@ function ReplayPlayer({ workout, language, loading, onClear }: { workout: Workou
     runnerPane.style.zIndex = '650'; runnerPane.style.pointerEvents = 'none';
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
     import('./basemap').then(({ createBasemap }) => {
-      if (!disposed) baseRef.current = createBasemap(map, languageRef.current, () => { if (!disposed) setMapError(true); });
-    }).catch(() => { if (!disposed) setMapError(true); });
+      if (!disposed) baseRef.current = createBasemap(map, languageRef.current, status => { if (!disposed) setBasemapStatus(status); });
+    }).catch(status => { if (!disposed) setBasemapStatus(status); });
     const groups = new Map<string, L.LatLngTuple[][]>();
     for (let i = 1; i < workout.points.length; i++) {
       const p = workout.points[i]; const prev = workout.points[i - 1];
@@ -151,7 +157,7 @@ function ReplayPlayer({ workout, language, loading, onClear }: { workout: Workou
     fit();
     const observer = new ResizeObserver(() => { map.invalidateSize(); fit(); }); observer.observe(canvas.current);
     return () => { disposed = true; observer.disconnect(); baseRef.current?.destroy(); baseRef.current = null; dot.current = null; endpoints.current = []; map.remove(); mapRef.current = null; };
-  }, [workout]);
+  }, [workout, baseAttempt]);
 
   useEffect(() => {
     languageRef.current = language;
@@ -165,10 +171,10 @@ function ReplayPlayer({ workout, language, loading, onClear }: { workout: Workou
       container?.querySelector(selector)?.setAttribute('title', label);
       container?.querySelector(selector)?.setAttribute('aria-label', label);
     }
-  }, [language, workout]);
+  }, [language, workout, baseAttempt]);
   useEffect(() => {
     dot.current?.setLatLng([position.lat, position.lon]).setStyle({ fillColor: colour });
-  }, [position.lat, position.lon, colour, workout]);
+  }, [position.lat, position.lon, colour, workout, baseAttempt]);
 
   const chartPoints = useMemo(() => workout.points.filter((_, i) => i % Math.max(1, Math.floor(workout.points.length / 240)) === 0 || i === workout.points.length - 1).map(p => ({ ...p, speed: sampledSpeed(workout.speedSamples ?? [], p.time) ?? p.speed })), [workout]);
   const maxSpeed = Math.max(18, ...chartPoints.map(p => p.speed));
@@ -184,14 +190,15 @@ function ReplayPlayer({ workout, language, loading, onClear }: { workout: Workou
         <div className="replay-average"><span>{text('AVERAGE SPEED', '平均速度')}</span><strong>{workout.averageSpeed.toFixed(1)} <small>km/h</small></strong><p>{text('Route distance / elapsed time', '路線距離 ÷ 經過時間')}</p></div>
         <div className="replay-speed-key"><span>{text('SPEED', '速度')} <small>km/h</small></span><div className="replay-gradient"/><div className="replay-scale"><span>0</span><span>6</span><span>12</span><span>18+</span></div></div>
       </div>
-      {mapError && <p className="hint" role="status">{text('Some map details could not load. The workout route is still available.', '部分底圖無法載入，仍可查看運動路線。')}</p>}
+      <BasemapNotice status={basemapStatus} language={language} retry={() => baseRef.current ? baseRef.current.retry() : setBaseAttempt(n => n + 1)} />
       <div className="replay-dashboard"><div className="replay-current"><span>{text('CURRENT SPEED', '目前速度')}</span><strong style={{ color: colour }}>{position.gap ? '—' : position.speed.toFixed(1)} <small>km/h</small></strong></div><div><span>{text('DISTANCE', '距離')}</span><strong>{(position.distance / 1000).toFixed(2)} <small>/ {(workout.distance / 1000).toFixed(2)} km</small></strong></div><div><span>{text('ELAPSED', '經過時間')}</span><strong>{clock(elapsed)} <small>/ {clock(workout.duration)}</small></strong></div></div>
       <p className="replay-recorded-summary">{text('Average pace', '平均配速')}: {paceLabel(workout.averageSpeed)} /km · {text('Recorded start (UTC)', '紀錄起始時間（UTC）')}: {new Date(workout.points[0].time).toISOString().replace('T', ' ').replace('.000Z', '')}</p>
       <div className="replay-timeline"><svg viewBox="0 0 1000 72" preserveAspectRatio="none" role="img" aria-label={text('Speed over the workout timeline', '運動速度時間軸')}><defs><linearGradient id="speed-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4d987c" stopOpacity=".28"/><stop offset="100%" stopColor="#4d987c" stopOpacity=".02"/></linearGradient></defs><polygon points={`0,72 ${chart} 1000,72`} fill="url(#speed-area)"/><polyline points={chart} fill="none" stroke="#74a58d" strokeWidth="2" vectorEffect="non-scaling-stroke"/><line x1={progress * 1000} y1="0" x2={progress * 1000} y2="72" stroke="#234e40" strokeWidth="2"/></svg><input aria-label={text('Workout timeline', '運動時間軸')} type="range" min="0" max={workout.duration} step="0.1" value={elapsed} onChange={e => { setPlaying(false); setElapsed(Number(e.target.value)); }}/><div className="replay-timeline-labels"><span>{text('START', '起點')}</span><span>{text('Drag to explore your run', '拖曳以查看沿途速度')}</span><span>{text('FINISH', '終點')}</span></div></div>
-      <div className="replay-controls"><div className="replay-actions"><button className="primary replay-play" disabled={loading} onClick={() => { if (finished) setElapsed(0); setPlaying(value => !value); }} aria-label={playing ? text('Pause replay', '暫停重播') : text('Play replay', '播放重播')}><span aria-hidden="true">{playing ? 'Ⅱ' : '▶'}</span>{playing ? text('Pause', '暫停') : finished ? text('Replay', '再播一次') : text('Play run', '播放路線')}</button><button className="replay-reset" onClick={() => { setElapsed(0); setPlaying(false); }} aria-label={text('Return to start', '返回起點')}>↺</button></div><span className="replay-five"><b>5.00 s</b> {text('full-run replay', '完整跑程重播')}</span><span className="replay-rate-note">{text('Original timestamps · one fixed timeline', '原始時間戳記 · 固定時間軸')}</span></div>
+      <div className="replay-controls"><div className="replay-actions"><button className="primary replay-play" disabled={loading} onClick={() => { if (finished) setElapsed(0); setPlaying(value => !value); }} aria-label={playing ? text('Pause replay', '暫停重播') : text('Play replay', '播放重播')}><span aria-hidden="true">{playing ? 'Ⅱ' : '▶'}</span>{playing ? text('Pause', '暫停') : finished ? text('Replay', '再播一次') : text('Play run', '播放路線')}</button><button className="replay-reset" onClick={() => { setElapsed(0); setPlaying(false); }} aria-label={text('Return to start', '返回起點')}>↺</button></div><span className="replay-five"><b>5.00 s</b> {text('full-run replay', '完整跑程重播')}</span><span className="replay-rate-note">{estimatedTimes ? text('Some timing estimated · fixed timeline', '部分時間經估算 · 固定時間軸') : text('Original timestamps · one fixed timeline', '原始時間戳記 · 固定時間軸')}</span></div>
       {workout.health && <div className="replay-health-summary"><strong>Apple Health · {workout.health.source}</strong><span>{text('Recorded distance', '紀錄距離')}: {workout.health.distance === undefined ? '—' : `${(workout.health.distance / 1000).toFixed(2)} km`}</span><span>{text('Active duration', '活動時間')}: {Number.isFinite(workout.health.activeSeconds) ? clock(workout.health.activeSeconds!) : '—'}</span></div>}
+      {estimatedTimes > 0 && <p className="hint" role="status">{text(`${estimatedTimes} repeated GPS timestamp(s) adjusted using the next valid time. All route points and total duration are preserved. Timing and GPS-derived speed around these points are estimates. Your original file is unchanged.`, `${estimatedTimes} 個重複 GPS 時間已依下一筆有效時間補正。保留全部路線點及總時長；這些點附近的時間與 GPS 計算速度為估算值。原始檔案未變更。`)}</p>}
       <ReplayExport workout={workout} language={language}/>
-      <div className="replay-note">{workout.demo ? text('DEMO ONLY — simulated timestamps on the Taipei course. Import your files for a real, data-driven replay.', '僅為示範：台北路線搭配模擬時間。匯入檔案後才會呈現真實資料重播。') : text('Position follows every original GPS point and its timestamp. The full recorded timeline is compressed into 5 seconds, including stops.', '位置依循每個原始 GPS 點及時間戳記，完整紀錄時間壓縮為五秒，包含停留時間。')}<p>{workout.recordedSpeedCount > 0 ? text('Colour uses recorded speed where available, otherwise GPS distance / time. Average uses GPS distance / elapsed time, including stops.', '顏色優先採用紀錄速度，缺少時以 GPS 距離／時間估算。平均速度使用 GPS 距離／經過時間，包含停留。') : text('Speed and colour use GPS distance / time. Average includes stops. Playback duration never changes these values.', '速度與顏色依 GPS 距離／時間計算，平均包含停留，播放時長不影響數值。')}</p>{workout.gaps > 0 && <p>{text(`${workout.gaps} sparse, disconnected or jumpy intervals detected. All coordinates are retained. Separate track segments hold position until the next segment; no missing route is invented.`, `偵測到 ${workout.gaps} 處稀疏、斷開或跳動的紀錄，保留全部座標。分段間停留至下一段，不會虛構缺漏路線。`)}</p>}<p>{text('Files stay in browser memory. Map tiles load from OpenFreeMap.', '檔案僅保留於瀏覽器記憶體，底圖由 OpenFreeMap 載入。')}</p><button className="text-button" onClick={onClear}>{text('Choose another workout', '選擇其他運動紀錄')}</button></div>
+      <div className="replay-note">{workout.demo ? text('DEMO ONLY — simulated timestamps on the Taipei course. Import your files for a real, data-driven replay.', '僅為示範：台北路線搭配模擬時間。匯入檔案後才會呈現真實資料重播。') : text('Position follows every original GPS point along the workout timeline. The full recorded timeline is compressed into 5 seconds, including stops.', '位置依循每個原始 GPS 點與運動時間軸，完整紀錄時間壓縮為五秒，包含停留時間。')}<p>{workout.recordedSpeedCount > 0 ? text('Colour uses recorded speed where available, otherwise GPS distance / time. Average uses GPS distance / elapsed time, including stops.', '顏色優先採用紀錄速度，缺少時以 GPS 距離／時間估算。平均速度使用 GPS 距離／經過時間，包含停留。') : text('Speed and colour use GPS distance / time. Average includes stops. Playback duration never changes these values.', '速度與顏色依 GPS 距離／時間計算，平均包含停留，播放時長不影響數值。')}</p>{workout.gaps > 0 && <p>{text(`${workout.gaps} sparse, disconnected or jumpy intervals detected. All coordinates are retained. Separate track segments hold position until the next segment; no missing route is invented.`, `偵測到 ${workout.gaps} 處稀疏、斷開或跳動的紀錄，保留全部座標。分段間停留至下一段，不會虛構缺漏路線。`)}</p>}<p>{text('Imported files stay in browser memory unless you save the replay to your library. Map tiles load from OpenFreeMap.', '匯入檔案保留於瀏覽器記憶體，選擇儲存才會將重播資料上傳。底圖由 OpenFreeMap 載入。')}</p><button className="text-button" onClick={onClear}>{text('Choose another workout', '選擇其他運動紀錄')}</button></div>
     </section>
   </>;
 }

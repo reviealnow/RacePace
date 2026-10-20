@@ -15,3 +15,7 @@ dist/
 __pycache__/
 .venv/
 .DS_Store
+.wrangler/
+.vinext/
+.next/
+web/public/map-worker.js

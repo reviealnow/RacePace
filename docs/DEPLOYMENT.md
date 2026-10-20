@@ -94,3 +94,35 @@ Deployed successfully with owner-only access preserved.
 - Validation: 24 tests, production build, course golden checks and measured browser-generated five-second MP4s passed before packaging. Physical iPhone verification remains outstanding.
 
 This deployment supersedes the unpublished status recorded in earlier sections and review-time feature notes. It does not merge the GitHub PR.
+
+## Timestamp collision fix — 2026-10-20
+
+- Published successfully with owner-only access unchanged.
+- Sites source commit: `6e94118d29ca460db3cda573155210da2ca08fa0`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_4663738d82a881919cb3a88865c683b4`.
+- Deployment: `appgdep_6ad6e81a50788191a1ffbde6529bff8b`.
+- Small bounded duplicate timestamps now receive interpolated timing without dropping route vertices or changing total duration. The interface and video disclose estimated timing/speed. Ambiguous collisions still fail validation.
+- Validation: 26 tests and production build passed. A user-supplied GPX imported with all 1,188 coordinates intact, one adjusted timestamp, unchanged 1,539-second duration and finite output at all 150 export frame samples. Personal workout data was not copied into the repository or deployment.
+- Browser file selection failed in automation; this release has no new end-to-end browser playback or encoded-MP4 verification. Previous encoder tests remain documented in WORKOUT_REPLAY_EXPORT.md.
+
+## Basemap recovery — 2026-10-20
+
+- Owner-private deployment succeeded: `appgdep_6ad72131fef48191aafb2a2b851d6127`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_8a9c43e2ffa08191933d575ca2d9d7b4`.
+- Sites source commit: `6ecc81b3f193509ac62bb577d2a02da456097b29`.
+- Shared race/replay basemap now has a 12-second initial-load watchdog, up to two automatic retries spaced 1.5 seconds apart, and a bilingual manual reload control after failure. Renderer errors and WebGL context loss also trigger bounded recovery. Retries replace only the basemap layer and retain route data and language selection.
+- Validation: 29 tests and production build passed. Tests cover timeout exhaustion, manual recovery, stale callbacks, cleanup, and renderer construction errors. Browser confirmed initial loading notice, successful map loading with notice removal, and EN/ZH switching without console errors. Failure/retry transitions were tested with a deterministic scheduler, not by inducing a real provider outage.
+
+## Private workout library — 2026-10-21
+
+This release supersedes the earlier static-only and no-storage scope. Existing React components are retained inside the official Sites Vinext server wrapper, with authenticated API routes and D1 storage.
+
+- Sites source commit: `ed4aef4d0223f6ff63cb476f6daa3c46679fbc61`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_2ee422ffceec81918ffca3cbc173fa07`.
+- Deployment: `appgdep_6ad7f692bbcc8191bf1c63870d830880`, terminal status `succeeded`.
+- Owner-only audience retained; D1 binding `DB`; no R2 binding. Migration: `web/drizzle/0000_flashy_blackheart.sql`. Applied migrations must remain immutable. Code rollback does not roll back saved runs or the database schema.
+- Validation: 32 tests, frontend/server type checks and production build passed. Local browser testing saved a synthetic run, reloaded, reopened it from the library and exported an MP4 whose browser-reported duration was exactly 5 seconds. A 543px viewport had no horizontal overflow. Physical phone testing remains outstanding.
+- Live verification reached the private ChatGPT sign-in gate. This browser has no authenticated live session, so production save/open behavior has not yet been verified end to end.
+- No personal workout or local preview database was included in the release archive. This Sites release does not imply a GitHub push or PR merge.
+
+See [workout library](WORKOUT_LIBRARY.md) for behavior and maintenance.

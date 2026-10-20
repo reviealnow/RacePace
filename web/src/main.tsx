@@ -1,5 +1,6 @@
+import BasemapNotice from './BasemapNotice';
+import type { BasemapStatus } from './basemap-recovery';
 import { StrictMode, useEffect, useRef, useState } from 'react';
-import { createRoot } from 'react-dom/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import course from './data/course.json';
@@ -22,7 +23,8 @@ function RouteMap({ language }: { language: Language }) {
   const t = (text: TranslationKey) => translate(language, text);
   const languageRef = useRef(language);
   const basemapRef = useRef<ReturnType<typeof import('./basemap').createBasemap> | null>(null);
-  const [basemapError, setBasemapError] = useState(false);
+  const [basemapStatus, setBasemapStatus] = useState<BasemapStatus>('loading');
+  const [baseAttempt, setBaseAttempt] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -33,8 +35,8 @@ function RouteMap({ language }: { language: Language }) {
     let disposed = false;
     // Load the vector renderer separately so pace controls remain quick to load.
     import('./basemap').then(({ createBasemap }) => {
-      if (!disposed) basemapRef.current = createBasemap(map, languageRef.current, () => { if (!disposed) setBasemapError(true); });
-    }).catch(() => { if (!disposed) setBasemapError(true); });
+      if (!disposed) basemapRef.current = createBasemap(map, languageRef.current, status => { if (!disposed) setBasemapStatus(status); });
+    }).catch(status => { if (!disposed) setBasemapStatus(status); });
     const route = L.polyline(course.coordinates.map(([lon, lat]) => [lat, lon] as [number, number]), { color: '#216857', weight: 5, opacity: 0.95 }).addTo(map);
     map.fitBounds(route.getBounds(), { padding: [32, 32] });
     const marker = (lat: number, lon: number, label: string, title: string, finish = false) => L.marker([lat, lon], { title, icon: L.divIcon({ className: '', html: `<span class="map-pin ${finish ? 'finish' : ''}">${label}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] }) }).bindPopup(title).addTo(map);
@@ -44,7 +46,7 @@ function RouteMap({ language }: { language: Language }) {
     ];
     const observer = new ResizeObserver(() => map.invalidateSize()); observer.observe(ref.current);
     return () => { disposed = true; observer.disconnect(); basemapRef.current?.destroy(); basemapRef.current = null; map.remove(); mapRef.current = null; markersRef.current = []; };
-  }, []);
+  }, [baseAttempt]);
   useEffect(() => {
     languageRef.current = language;
     basemapRef.current?.setLanguage(language);
@@ -58,10 +60,10 @@ function RouteMap({ language }: { language: Language }) {
       marker.getElement()?.setAttribute('aria-label', titles[i]);
     });
     return () => { zoom.remove(); };
-  }, [language]);
-  return <><div ref={ref} className="map" role="region" aria-label={t("台北半馬 KML 路線地圖，可使用縮放按鈕與標記查看關門點")} />{basemapError && <p className="hint" role="status">{t('部分底圖無法載入，請重新整理頁面；賽道路線仍可查看。')}</p>}</>;
+  }, [language, baseAttempt]);
+  return <><div ref={ref} className="map" role="region" aria-label={t("台北半馬 KML 路線地圖，可使用縮放按鈕與標記查看關門點")} /><BasemapNotice status={basemapStatus} language={language} retry={() => basemapRef.current ? basemapRef.current.retry() : setBaseAttempt(n => n + 1)} /></>;
 }
-function App() {
+export default function App() {
   const [language, setLanguage] = useState<Language>(initialLanguage);
   const t = (text: TranslationKey) => translate(language, text);
   useEffect(() => {
@@ -106,4 +108,3 @@ function App() {
     {notice && <p className="notice" role="status">{t(notice)}<button aria-label={t("關閉提示")} onClick={() => setNotice('')}>×</button></p>}
     <footer><span><b>RacePace</b>　{t("每一步，都有方向。")}</span><span>{t("使用者提供之賽事資料 · 請以大會最終公告為準")}</span></footer></main></div></>;
 }
-createRoot(document.getElementById('root')!).render(<StrictMode><App/></StrictMode>);

@@ -1,5 +1,5 @@
 export const REPLAY_MS = 5000;
-export type GPSPoint = { lat: number; lon: number; time: number; timeProvided?: boolean; breakBefore?: boolean; recordedSpeed?: number };
+export type GPSPoint = { lat: number; lon: number; time: number; originalTime?: number; timeProvided?: boolean; breakBefore?: boolean; recordedSpeed?: number };
 export type ReplayPoint = GPSPoint & { elapsed: number; distance: number; speed: number; gap: boolean };
 export type HealthSummary = { start: number; end: number; distance?: number; activeSeconds?: number; source: string; routes: string[] };
 export type SpeedSample = { start: number; end: number; speed: number; source: string };
@@ -21,8 +21,27 @@ export function buildWorkout(raw: GPSPoint[], name: string, demo = false): Worko
   if (raw.some(p => !Number.isFinite(p.time))) throw new WorkoutError('timestamps');
   // Preserve GPX recording order; sorting would silently rewrite an out-of-order route.
   if (raw.some((p, i) => i > 0 && p.time < raw[i - 1].time)) throw new WorkoutError('timestamps');
-  const ordered = raw;
-  if (ordered.some((p, i) => i > 0 && p.time === ordered[i - 1].time && (p.lat !== ordered[i - 1].lat || p.lon !== ordered[i - 1].lon))) throw new WorkoutError('timestamps');
+  // Coalesce exact duplicates only. For small, bounded timestamp collisions,
+  // retain every distinct position and estimate sub-second timing in file order.
+  // Never bridge track breaks, extrapolate endpoints, or alter the source array.
+  const ordered = raw.filter((p, i) => i === 0 || p.time !== raw[i - 1].time || p.lat !== raw[i - 1].lat || p.lon !== raw[i - 1].lon || p.breakBefore);
+  let repaired = 0;
+  for (let start = 0; start < ordered.length;) {
+    let end = start + 1;
+    while (end < ordered.length && ordered[end].time === ordered[start].time) end++;
+    if (end - start > 1) {
+      const next = ordered[end];
+      const base = ordered[start].time;
+      if (start === 0 || !next || end - start > 5 || next.time - base > 2000 ||
+        ordered.slice(start, end + 1).some(p => p.breakBefore) ||
+        (repaired += end - start - 1) > Math.max(1, Math.floor(raw.length * .01))) throw new WorkoutError('timestamps');
+      for (let i = start + 1; i < end; i++) {
+        ordered[i] = { ...ordered[i], originalTime: ordered[i].originalTime ?? base,
+          time: base + (next.time - base) * (i - start) / (end - start) };
+      }
+    }
+    start = end;
+  }
   const sorted = ordered.filter((p, i) => i === 0 || p.time !== ordered[i - 1].time);
   if (sorted.length < 2) throw new WorkoutError('points');
   const duration = (sorted.at(-1)!.time - sorted[0].time) / 1000;

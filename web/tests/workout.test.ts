@@ -156,3 +156,30 @@ test('Health speed source and units are respected; summaries never invent GPS co
   const unknownEntity = '<!DOCTYPE HealthData [<!ENTITY attack SYSTEM "file:///etc/passwd">]><HealthData>&attack;</HealthData>';
   assert.throws(() => parseAppleHealthXML(unknownEntity));
 });
+
+test('bounded timestamp collisions preserve vertices, endpoints, provenance and five-second replay', async () => {
+  const raw = [a, {...b, time: 1000}, {...d, time: 1000}, {...d, lat: 25.003, time: 2000}];
+  const before = structuredClone(raw);
+  const run = buildWorkout(raw, 'rounded');
+  assert.deepEqual(raw, before);
+  assert.deepEqual(run.points.map(p => p.time), [0, 1000, 1500, 2000]);
+  assert.deepEqual(run.points.map(p => [p.lat, p.lon]), raw.map(p => [p.lat, p.lon]));
+  assert.equal(run.points[2].originalTime, 1000);
+  assert.equal(run.duration, 2);
+  assert.ok(run.points.every(p => Number.isFinite(p.speed)));
+  assert.equal(positionAt(run, replayElapsed(run.duration, 5000)).lat, raw.at(-1)!.lat);
+  assert.equal(positionAt(run, 1.5).lat, raw[2].lat);
+  assert.equal(buildWorkout(run.points, run.name).points[2].originalTime, 1000);
+  const xml = `<gpx><trk><trkseg>${raw.map(p => `<trkpt lat="${p.lat}" lon="${p.lon}"><time>${new Date(p.time).toISOString()}</time></trkpt>`).join('')}</trkseg></trk></gpx>`;
+  assert.deepEqual((await importWorkout(new File([xml], 'rounded.gpx'))).points, run.points.map(p => ({...p, timeProvided: true, breakBefore: false})));
+});
+
+test('ambiguous duplicate timestamps are rejected instead of inventing a timeline', () => {
+  const duplicate = {...d, time: 1000};
+  const first = {...b, time: 1000};
+  assert.throws(() => buildWorkout([first, duplicate, {...d, time: 2000}], 'start'));
+  assert.throws(() => buildWorkout([a, first, duplicate], 'end'));
+  assert.throws(() => buildWorkout([a, first, duplicate, {...d, time: 5000}], 'long gap'));
+  assert.throws(() => buildWorkout([a, first, {...duplicate, breakBefore: true}, {...d, time: 2000}], 'track break'));
+  assert.throws(() => buildWorkout([a, first, duplicate, {...b, time: 2000}, {...d, time: 2000}, {...d, time: 3000}], 'excessive collisions'));
+});
