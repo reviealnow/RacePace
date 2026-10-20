@@ -126,3 +126,11 @@ This release supersedes the earlier static-only and no-storage scope. Existing R
 - No personal workout or local preview database was included in the release archive. This Sites release does not imply a GitHub push or PR merge.
 
 See [workout library](WORKOUT_LIBRARY.md) for behavior and maintenance.
+
+## Saved run renaming — 2026-10-21
+
+- Owner-private deployment succeeded: `appgdep_6ad7ff668b288191a5d5e93e05194202`.
+- Sites source commit: `a26e2428781e52949ce2fc3224e06c2e13ac9703`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_81bc99a9d4248191813691f61e24c1e8`.
+- My runs now offers Rename, Save name and Cancel in EN/ZH. Names are trimmed and limited to 200 characters. An owner-scoped PATCH updates only the display name; reopening uses that name without changing route data or the existing deduplication key. No schema migration is needed.
+- Validation: 33 tests, both type checks and production build passed. Local browser renamed a synthetic saved run, verified persistence after reload, switched EN/ZH, and verified cancellation discards the draft. No personal saved runs were modified during testing.

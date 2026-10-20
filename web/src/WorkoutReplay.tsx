@@ -73,7 +73,7 @@ export default function WorkoutReplay({ language }: { language: Language }) {
     multiple: text('Import one workout route at a time, with at most one Apple Health XML export.', '每次請匯入一個運動路線，最多搭配一個 Apple Health XML 匯出檔。'),
   };
   return <div className="workout-replay">
-    <WorkoutLibrary language={language} workout={workout} onOpen={next => {requestId.current++;setLoading(false);setWorkout(next);setStaticRoute(null);setHealthFile(null);setError('');}}/>
+    <WorkoutLibrary onRename={(previous,name)=>setWorkout(current=>current===previous?{...current,name}:current)} language={language} workout={workout} onOpen={next => {requestId.current++;setLoading(false);setWorkout(next);setStaticRoute(null);setHealthFile(null);setError('');}}/>
     <section className={`replay-import ${dragging ? 'is-dragging' : ''}`} onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); void loadFiles(Array.from(e.dataTransfer.files)); }} aria-label={text('Import workout', '匯入運動紀錄')}>
       <div className="replay-import-icon" aria-hidden="true">↥</div>
       <div className="replay-import-copy"><strong>{text('Your whole run. Five seconds.', '完整跑程，五秒呈現。')}</strong><p>{text('Choose a GPX route, with Apple Health export.xml if available. Files stay on this device unless you choose Save to my library.', '選擇 GPX 路線，可一併加入 Apple Health export.xml。檔案在此裝置處理，選擇「儲存到我的紀錄」才會上傳。')}</p></div>

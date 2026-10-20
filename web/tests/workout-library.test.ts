@@ -38,3 +38,23 @@ test('saved data preserves replay timing and speeds without trusting derived met
  assert.ok(data.workout.distance<200);assert.equal(data.workout.speedSamples[0].speed,12);assert.ok(!data.payload.includes('Private device name'));
  assert.throws(()=>validateWorkout({...fixture,speedSamples:[{start:0,end:2000,speed:12}]}));
 });
+
+test('rename persists across list and reopen, protects ownership, and keeps route identity and data',async()=>{
+ const db=database();const env=db as unknown as D1Database;
+ try {
+ const {id}=await (await workoutAPI(request('POST','alice',fixture),env)).json() as {id:string};
+ const before=await (await workoutAPI(request(),env,id)).json() as Record<string,unknown>;
+ assert.equal((await workoutAPI(request('PATCH','',{name:'Run'}),env,id)).status,401);
+ assert.equal((await workoutAPI(request('PATCH','bob',{name:'Stolen'}),env,id)).status,404);
+ assert.equal((await workoutAPI(request('PATCH','alice',{name:'Run'},'https://elsewhere.test'),env,id)).status,403);
+ for(const name of ['', '   ', 'x'.repeat(201), 42, null])assert.equal((await workoutAPI(request('PATCH','alice',{name}),env,id)).status,400);
+ const renamed=await workoutAPI(request('PATCH','alice',{name:'  Morning run 晨跑  '}),env,id);
+ assert.equal(renamed.status,200);assert.deepEqual(await renamed.json(),{id,name:'Morning run 晨跑'});
+ const list=await (await workoutAPI(request(),env)).json() as {workouts:{name:string}[]};assert.equal(list.workouts[0].name,'Morning run 晨跑');
+ const after=await (await workoutAPI(request(),env,id)).json();assert.deepEqual(after,{...before,name:'Morning run 晨跑'});
+ const again=await workoutAPI(request('POST','alice',fixture),env);assert.equal((await again.json() as {id:string}).id,id);
+ assert.equal((await (await workoutAPI(request(),env,id)).json() as {name:string}).name,'Morning run 晨跑');
+ assert.equal((await workoutAPI(request('PATCH','alice',{name:'Missing'}),env,'f'.repeat(64))).status,404);
+ assert.equal((await workoutAPI(request('PATCH','alice',{name:'No ID'}),env)).status,405);
+ }finally{db.sql.close();}
+});

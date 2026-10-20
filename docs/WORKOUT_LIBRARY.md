@@ -27,3 +27,7 @@ Local sign-in uses the Sites development identity. Production uses ChatGPT sign-
 ## Verification and limits
 
 The 32-test suite includes ownership isolation, authentication, mutation origin checks, deduplication, deletion, quota enforcement and data validation. Local browser verification saved and reopened a synthetic workout after reload, then produced a five-second MP4. Physical iPhone export/sharing and authenticated production save/open still require verification. MP4 encoding and native sharing depend on browser support; the interface offers download when native file sharing is unavailable.
+
+## Rename a saved run
+
+Choose **Rename**, enter a name, then **Save name** (or Cancel). Names can contain up to 200 characters and cannot be blank. The name is stored with the saved run and appears after refresh/open on other devices. Reopening uses the new name for replay/export; already downloaded videos remain unchanged. Renaming preserves GPS data and the original saved record identity.

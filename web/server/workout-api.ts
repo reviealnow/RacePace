@@ -13,7 +13,7 @@ export async function workoutAPI(request: Request, db: D1Database | undefined, i
   if (!owner) return json({error:'signin'},401);
   if (!db) return json({error:'unavailable'},503);
   if (id && !/^[a-f0-9]{64}$/.test(id)) return json({error:'missing'},404);
-  if (!['GET','POST','DELETE'].includes(request.method) || (id && request.method==='POST') || (!id && request.method==='DELETE')) return json({error:'method'},405);
+  if (!['GET','POST','DELETE','PATCH'].includes(request.method) || (id && request.method==='POST') || (!id && ['DELETE','PATCH'].includes(request.method))) return json({error:'method'},405);
   if (request.method !== 'GET' && request.headers.get('origin') !== new URL(request.url).origin) return json({error:'origin'},403);
   try {
     if (request.method === 'GET' && !id) {
@@ -21,8 +21,15 @@ export async function workoutAPI(request: Request, db: D1Database | undefined, i
       return json({workouts:results});
     }
     if (request.method === 'GET') {
-      const row=await db.prepare('SELECT payload FROM workouts WHERE id = ? AND owner = ?').bind(id,owner).first<{payload:string}>();
-      return row ? json({id,...JSON.parse(row.payload)}) : json({error:'missing'},404);
+      const row=await db.prepare('SELECT name,payload FROM workouts WHERE id = ? AND owner = ?').bind(id,owner).first<{name:string;payload:string}>();
+      return row ? json({id,...JSON.parse(row.payload),name:row.name}) : json({error:'missing'},404);
+    }
+    if (request.method === 'PATCH') {
+      const input=await body(request);
+      if (!input || typeof input.name !== 'string' || !input.name.trim() || input.name.length>200) return json({error:'name'},400);
+      const name=input.name.trim();
+      const updated=await db.prepare('UPDATE workouts SET name = ? WHERE id = ? AND owner = ? RETURNING id,name').bind(name,id,owner).first();
+      return updated ? json(updated) : json({error:'missing'},404);
     }
     if (request.method === 'DELETE') {
       await db.prepare('DELETE FROM workouts WHERE id = ? AND owner = ?').bind(id,owner).run();return json({deleted:true});
