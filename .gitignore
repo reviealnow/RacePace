@@ -8,8 +8,14 @@ dist/
 *.fit
 *.tcx
 *.gpx
+!web/tests/fixtures/replay-synthetic.gpx
+!web/tests/fixtures/replay-synthetic.tcx
 *.sqlite*
 *.db
 __pycache__/
 .venv/
 .DS_Store
+.wrangler/
+.vinext/
+.next/
+web/public/map-worker.js

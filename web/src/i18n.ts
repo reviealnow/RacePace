@@ -9,7 +9,7 @@ const english = {
   "主要導覽": "Main navigation",
   "配速總覽": "Pace overview",
   "賽道路線": "Race route",
-  "訓練匯入": "Workout import",
+  "運動重播": "Workout Replay",
   "即將推出": "Soon",
   "台北半程馬拉松": "Taipei Half Marathon",
   "追蹤你自己，帶你破PB": "Track yourself, break your PB",

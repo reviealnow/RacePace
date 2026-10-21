@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HealthData [<!ELEMENT HealthData ANY>]>
+<HealthData locale="en_TW">
+  <Record type="HKQuantityTypeIdentifierRunningSpeed" sourceName="Synthetic Watch" unit="m/s" value="1.85" startDate="2026-10-18 08:00:00 +0800" endDate="2026-10-18 08:01:00 +0800"/>
+  <Record type="HKQuantityTypeIdentifierRunningSpeed" sourceName="Synthetic Watch" unit="m/s" value="0" startDate="2026-10-18 08:01:00 +0800" endDate="2026-10-18 08:01:30 +0800"/>
+  <Record type="HKQuantityTypeIdentifierRunningSpeed" sourceName="Synthetic Watch" unit="m/s" value="3.7" startDate="2026-10-18 08:01:30 +0800" endDate="2026-10-18 08:02:00 +0800"/>
+  <Workout workoutActivityType="HKWorkoutActivityTypeRunning" sourceName="Synthetic Watch" duration="1.5" durationUnit="min" startDate="2026-10-18 08:00:00 +0800" endDate="2026-10-18 08:02:00 +0800">
+    <WorkoutStatistics type="HKQuantityTypeIdentifierDistanceWalkingRunning" sum="0.22239" unit="km"/>
+    <WorkoutRoute><FileReference path="/workout-routes/replay-synthetic.gpx"/></WorkoutRoute>
+  </Workout>
+</HealthData>

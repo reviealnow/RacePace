@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2">
+  <Activities><Activity Sport="Running"><Id>2026-10-18T00:00:00Z</Id><Lap StartTime="2026-10-18T00:00:00Z"><Track>
+    <Trackpoint><Time>2026-10-18T00:00:00Z</Time><Position><LatitudeDegrees>25.040</LatitudeDegrees><LongitudeDegrees>121.550</LongitudeDegrees></Position></Trackpoint>
+    <Trackpoint><Time>2026-10-18T00:01:00Z</Time><Position><LatitudeDegrees>25.041</LatitudeDegrees><LongitudeDegrees>121.550</LongitudeDegrees></Position></Trackpoint>
+    <Trackpoint><Time>2026-10-18T00:02:00Z</Time><Position><LatitudeDegrees>25.042</LatitudeDegrees><LongitudeDegrees>121.550</LongitudeDegrees></Position></Trackpoint>
+  </Track></Lap></Activity></Activities>
+</TrainingCenterDatabase>

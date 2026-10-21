@@ -6,7 +6,7 @@ This is Milestone 1 from the system design: route viewing, pace simulation and a
 
 The initial version was saved for review, then deployed privately at the user's request. Subsequent authorized updates preserve owner-only access. The live URL is https://racepace-taipei-training.oakenocean2048.chatgpt.site.
 
-## Current release — translated basemap labels
+## Previous release — translated basemap labels
 
 - Deployed successfully on 2026-10-17; access remains owner-private.
 - Saved version ID: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_c52a0d936bb081919e2ea85f56a1a9fe`
@@ -75,3 +75,79 @@ There are no backend migrations or hosted workout files in this release. Rollbac
 - Milestone 2: FIT/TCX/GPX parsing, input validation, monotonic GPS matching, uncertain crossing handling, partial-run tests and analysis exports.
 - Milestone 3: private durable history, identity/ownership checks, deletion and optional raw-file retention.
 - Real iPhone/Safari validation remains separate from desktop responsive-width checks.
+
+## Unpublished workout replay/export enhancement — 2026-10-18
+
+The feature branch `feature/workout-replay-export` extends the existing static app with local workout replay and H.264 MP4 export. No hosting manifest, storage, identity or audience change is required. See [implementation, measured video verification and release limits](WORKOUT_REPLAY_EXPORT.md). This section does not indicate a new live release: review and the existing saved-version/deploy sequence are still pending.
+
+
+## Current release — workout replay and MP4 export (2026-10-18)
+
+Deployed successfully with owner-only access preserved.
+
+- GitHub application source: `efe55b3be19d61c18476a0644955be4e767f9317` on `feature/workout-replay-export` (PR #1 remains separate from deployment).
+- Sites source commit: `578aa59abd748c769e02df7b9094b065c1a44866`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_aa89c174e6a48191bb81980bacb46f15`.
+- Deployment: `appgdep_6ad4db11293081918acc5aab87157502`, terminal status `succeeded`.
+- Live URL: https://racepace-taipei-training.oakenocean2048.chatgpt.site
+- Includes timestamp-driven five-second workout replay, local imports, MP4 export/download, mobile full-route framing and EN/ZH.
+- Validation: 24 tests, production build, course golden checks and measured browser-generated five-second MP4s passed before packaging. Physical iPhone verification remains outstanding.
+
+This deployment supersedes the unpublished status recorded in earlier sections and review-time feature notes. It does not merge the GitHub PR.
+
+## Timestamp collision fix — 2026-10-20
+
+- Published successfully with owner-only access unchanged.
+- Sites source commit: `6e94118d29ca460db3cda573155210da2ca08fa0`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_4663738d82a881919cb3a88865c683b4`.
+- Deployment: `appgdep_6ad6e81a50788191a1ffbde6529bff8b`.
+- Small bounded duplicate timestamps now receive interpolated timing without dropping route vertices or changing total duration. The interface and video disclose estimated timing/speed. Ambiguous collisions still fail validation.
+- Validation: 26 tests and production build passed. A user-supplied GPX imported with all 1,188 coordinates intact, one adjusted timestamp, unchanged 1,539-second duration and finite output at all 150 export frame samples. Personal workout data was not copied into the repository or deployment.
+- Browser file selection failed in automation; this release has no new end-to-end browser playback or encoded-MP4 verification. Previous encoder tests remain documented in WORKOUT_REPLAY_EXPORT.md.
+
+## Basemap recovery — 2026-10-20
+
+- Owner-private deployment succeeded: `appgdep_6ad72131fef48191aafb2a2b851d6127`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_8a9c43e2ffa08191933d575ca2d9d7b4`.
+- Sites source commit: `6ecc81b3f193509ac62bb577d2a02da456097b29`.
+- Shared race/replay basemap now has a 12-second initial-load watchdog, up to two automatic retries spaced 1.5 seconds apart, and a bilingual manual reload control after failure. Renderer errors and WebGL context loss also trigger bounded recovery. Retries replace only the basemap layer and retain route data and language selection.
+- Validation: 29 tests and production build passed. Tests cover timeout exhaustion, manual recovery, stale callbacks, cleanup, and renderer construction errors. Browser confirmed initial loading notice, successful map loading with notice removal, and EN/ZH switching without console errors. Failure/retry transitions were tested with a deterministic scheduler, not by inducing a real provider outage.
+
+## Private workout library — 2026-10-21
+
+This release supersedes the earlier static-only and no-storage scope. Existing React components are retained inside the official Sites Vinext server wrapper, with authenticated API routes and D1 storage.
+
+- Sites source commit: `ed4aef4d0223f6ff63cb476f6daa3c46679fbc61`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_2ee422ffceec81918ffca3cbc173fa07`.
+- Deployment: `appgdep_6ad7f692bbcc8191bf1c63870d830880`, terminal status `succeeded`.
+- Owner-only audience retained; D1 binding `DB`; no R2 binding. Migration: `web/drizzle/0000_flashy_blackheart.sql`. Applied migrations must remain immutable. Code rollback does not roll back saved runs or the database schema.
+- Validation: 32 tests, frontend/server type checks and production build passed. Local browser testing saved a synthetic run, reloaded, reopened it from the library and exported an MP4 whose browser-reported duration was exactly 5 seconds. A 543px viewport had no horizontal overflow. Physical phone testing remains outstanding.
+- Live verification reached the private ChatGPT sign-in gate. This browser has no authenticated live session, so production save/open behavior has not yet been verified end to end.
+- No personal workout or local preview database was included in the release archive. This Sites release does not imply a GitHub push or PR merge.
+
+See [workout library](WORKOUT_LIBRARY.md) for behavior and maintenance.
+
+## Saved run renaming — 2026-10-21
+
+- Owner-private deployment succeeded: `appgdep_6ad7ff668b288191a5d5e93e05194202`.
+- Sites source commit: `a26e2428781e52949ce2fc3224e06c2e13ac9703`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_81bc99a9d4248191813691f61e24c1e8`.
+- My runs now offers Rename, Save name and Cancel in EN/ZH. Names are trimmed and limited to 200 characters. An owner-scoped PATCH updates only the display name; reopening uses that name without changing route data or the existing deduplication key. No schema migration is needed.
+- Validation: 33 tests, both type checks and production build passed. Local browser renamed a synthetic saved run, verified persistence after reload, switched EN/ZH, and verified cancellation discards the draft. No personal saved runs were modified during testing.
+
+## Rollback marker before vertical video — 2026-10-21
+
+- Git tag: `deploy-2026-10-21-pre-vertical-video`.
+- GitHub commit: `087ead62ae443382a0282e94308c7686d19ec5f9`.
+- Corresponding live Sites deployment: `appgdep_6ad7ff668b288191a5d5e93e05194202`.
+- This marker restores the application source from immediately before the 9:16 video export update. A Sites rollback should redeploy the saved version `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_81bc99a9d4248191813691f61e24c1e8`; rolling Git code back alone does not change D1 data.
+
+## Vertical social video export — 2026-10-21
+
+- GitHub application source: `a591af2` on `feature/workout-replay-export`.
+- Sites source commit: `83a8121e94a08a257a58352accbb6b8d01b1d8aa`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_427c3c5fb4cc8191b423ea70c3b58857`.
+- Owner-private deployment: `appgdep_6ad841a2047881919bacc0d333a690c2`, terminal status `succeeded`.
+- The five-second MP4 is now 1080×1920 (9:16). It includes RacePace branding, EU-order workout date and local time, optional local weather, the full route, `Time` and `AVG` in the lower-left footer, and 10 px map credits. The duplicate speed and countdown are removed.
+- Weather lookup rounds the start coordinate to two decimals and sends that approximate location plus the workout date to Open-Meteo. Export continues without the icon if weather is unavailable.
+- Validation: 34 tests, both TypeScript checks, production build and course golden checks passed. A browser-generated 150-frame video played as exactly five seconds at 1080×1920. Physical iPhone testing remains outstanding.

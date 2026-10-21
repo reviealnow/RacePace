@@ -203,3 +203,21 @@ The live web app currently has an import placeholder only. Workout parsing, GPS 
 | Validation workflow | [ci.yml](../.github/workflows/ci.yml) |
 | Hosting configuration | [hosting.json](../web/.openai/hosting.json) |
 | Original workout processing | [app.py](../legacy-python/app.py), [core.py](../legacy-python/core.py) |
+
+## 4. Local feature branch: workout replay and MP4 (not deployed)
+
+```mermaid
+flowchart LR
+    Files["Local GPX / optional Apple XML"] --> Parser["SAX parser + validation"]
+    Parser --> Model["Original GPS order + timestamps"]
+    Model --> Interpolation["workout.ts: timestamp interpolation"]
+    Interpolation --> Preview["React / Leaflet five-second replay"]
+    Interpolation --> Frames["150 deterministic canvas frames"]
+    Map["Existing OpenFreeMap style + attribution<br/>or route-only fallback"] --> Frames
+    Frames --> Encoder["Browser H.264 encoder + MP4 muxer"]
+    Encoder --> Blob["In-memory video Blob"]
+    Blob --> Download["Explicit local download"]
+    Blob --> Share["Optional user-invoked native share"]
+```
+
+No file persistence or upload endpoint is added. Export includes visible route geometry but omits filename/date/Health source metadata. See [export verification](WORKOUT_REPLAY_EXPORT.md).
