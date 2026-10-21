@@ -141,3 +141,13 @@ See [workout library](WORKOUT_LIBRARY.md) for behavior and maintenance.
 - GitHub commit: `087ead62ae443382a0282e94308c7686d19ec5f9`.
 - Corresponding live Sites deployment: `appgdep_6ad7ff668b288191a5d5e93e05194202`.
 - This marker restores the application source from immediately before the 9:16 video export update. A Sites rollback should redeploy the saved version `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_81bc99a9d4248191813691f61e24c1e8`; rolling Git code back alone does not change D1 data.
+
+## Vertical social video export — 2026-10-21
+
+- GitHub application source: `a591af2` on `feature/workout-replay-export`.
+- Sites source commit: `83a8121e94a08a257a58352accbb6b8d01b1d8aa`.
+- Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_427c3c5fb4cc8191b423ea70c3b58857`.
+- Owner-private deployment: `appgdep_6ad841a2047881919bacc0d333a690c2`, terminal status `succeeded`.
+- The five-second MP4 is now 1080×1920 (9:16). It includes RacePace branding, EU-order workout date and local time, optional local weather, the full route, `Time` and `AVG` in the lower-left footer, and 10 px map credits. The duplicate speed and countdown are removed.
+- Weather lookup rounds the start coordinate to two decimals and sends that approximate location plus the workout date to Open-Meteo. Export continues without the icon if weather is unavailable.
+- Validation: 34 tests, both TypeScript checks, production build and course golden checks passed. A browser-generated 150-frame video played as exactly five seconds at 1080×1920. Physical iPhone testing remains outstanding.
