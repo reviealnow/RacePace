@@ -1,6 +1,6 @@
 # Five-second workout replay and MP4 export
 
-Enhancement on `feature/workout-replay-export`, prepared for GitHub review; not saved to Sites or deployed. Source baseline: `873989d`, verified against GitHub main on 2026-10-18. The prior local replay work is included, not discarded. Requirements: the user's RacePace Feature Extension Package, documents 01 and 02.
+Enhancement on `feature/workout-replay-export`, integrated into the existing RacePace application. Requirements originated in the user's RacePace Feature Extension Package, documents 01 and 02, and subsequent vertical-video layout review.
 
 ## Architecture and integration
 
@@ -30,11 +30,11 @@ Export contains 150 frames at 30 fps, timestamps `i / 30`, durations `1 / 30`, t
 
 ## Rendering and privacy
 
-Default 960×720 balances text readability and encoding cost. A separate MapLibre instance fits the entire track, uses the same public OpenFreeMap bright style and EN/ZH expressions, then freezes its canvas. Route, pins, moving dot, speed, elapsed progress, distance, average pace, average speed and branding are explicitly painted into the video. This does not capture arbitrary DOM or depend on real-time MediaRecorder timing.
+The social export is 1080×1920 (9:16), 30 fps and exactly five seconds. A separate MapLibre instance fits the entire track into the tall map area, uses the same public OpenFreeMap bright style and EN/ZH expressions, then freezes its canvas. Route, pins, moving dot, distance, average pace, time, average speed and RacePace branding are explicitly painted into the video. The top-right date uses day/month/year and the workout's local time. When available, a vector weather icon represents the nearest hourly conditions at the workout start. The footer omits the countdown and duplicate current-speed value. Map credits remain visible at 10 px. This does not capture arbitrary DOM or depend on real-time MediaRecorder timing.
 
 Map loading is bounded to 15 seconds. A canvas read checks origin cleanliness. On failure, export continues with a clearly labelled route-only background. Users may explicitly choose this background to hide place labels. It does not anonymize route shape or trim endpoints. Exports omit original filename, date, Health source and GPS metadata; the drawn route is still sensitive. Nothing is automatically shared. Native sharing is offered only when file sharing is supported, with download as fallback.
 
-Files and video buffers stay in browser memory; no upload API/storage was introduced. The interactive map and optional video map request map assets from OpenFreeMap, revealing the viewed geographic area to the provider. The privacy option affects the exported background, not the already-loaded interactive map. Code review found no workout upload path; no network-proxy audit was performed.
+Files and video buffers stay in browser memory. Saved runs use the private authenticated workout library documented separately. The interactive map and optional video map request map assets from OpenFreeMap, revealing the viewed geographic area to the provider. For weather, the app rounds the start coordinate to two decimals and sends that approximate location plus the workout date to Open-Meteo; the export continues without a weather icon if the request fails. The privacy option affects the exported background, not the already-loaded interactive map. Nothing is automatically shared.
 
 [OpenFreeMap](https://openfreemap.org/) documents its open map data and attribution requirements. Every map-backed frame retains OpenFreeMap, OpenMapTiles, OpenStreetMap contributors and the copyright URL. The route-only fallback contains no provider imagery. Satellite imagery is deferred; no provider key or secrets are embedded.
 
@@ -66,6 +66,6 @@ This requires ffmpeg/ffprobe only on the verification machine. The deployed stat
 
 ## Limits and release
 
-Physical iPhone/Safari download/share and non-supporting browsers have not been tested. Native share capability is detected, but no real recipient was selected. Real user workout exports have not been provided. Missing GPS or translation data cannot be recovered. Large tracks/devices may render slowly; progress and cancellation are available, and raster background/route geometry is cached per export. P1 satellite/portrait themes, heart rate overlays, endpoint redaction, history and GIF/WebM remain deferred.
+Physical iPhone/Safari download/share and non-supporting browsers have not been tested. Native share capability is detected, but no real recipient was selected. Missing GPS or translation data cannot be recovered. Large tracks/devices may render slowly; progress and cancellation are available, and raster background/route geometry is cached per export. Satellite themes, heart rate overlays, endpoint redaction and GIF/WebM remain deferred.
 
-After review: commit/push this feature branch, open a GitHub PR, pass CI and review. Sync the verified `web/` source/build to the existing Sites release checkout, save the exact version for review, then deploy that reviewed version privately. Preserve `web/.openai/hosting.json` and existing owner-only audience. GitHub push does not deploy Sites. Follow `docs/DEPLOYMENT.md`; no database migration or backend service is required.
+Release through the existing GitHub branch and private Sites project. Preserve `web/.openai/hosting.json`, the owner-only audience, the workout API and the existing D1 binding. GitHub push does not deploy Sites. Follow `docs/DEPLOYMENT.md`; this video layout change requires no database migration.

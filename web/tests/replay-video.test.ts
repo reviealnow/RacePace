@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import { VIDEO, videoFrame, paceLabel, routeProjection } from '../src/replay-render';
 import { buildWorkout, positionAt } from '../src/workout';
 import { importUntimedGPX } from '../src/workout-import';
+import { weatherKind, workoutDateLabel } from '../src/workout-weather';
 
 test('150 deterministic frame intervals occupy exactly five seconds and include both endpoints', () => {
+  assert.deepEqual({width:VIDEO.width,height:VIDEO.height}, {width:1080,height:1920});
   const frames = Array.from({ length: VIDEO.frames }, (_, i) => videoFrame(i, 120));
   assert.equal(frames.length, 150);
   assert.equal(frames[0].elapsed, 0);
@@ -31,8 +33,18 @@ test('untimed GPX offers only valid route geometry; partial/malformed timing rem
 test('projection fits all vertices and crosses the dateline using the short arc', () => {
   const points = [{lat:25,lon:179.99,time:0},{lat:25.001,lon:-179.99,time:60000}];
   const project = routeProjection(points);
-  for (const p of points) { const v = project(p); assert.ok(v.x >= 59 && v.x <= 901); assert.ok(v.y >= 49 && v.y <= 421); }
+  for (const p of points) { const v = project(p); assert.ok(v.x >= 59 && v.x <= 1021); assert.ok(v.y >= 79 && v.y <= 1361); }
   const middle = positionAt(buildWorkout(points, 'dateline'), 30);
   assert.ok(Math.abs(middle.lon) > 179.9);
   assert.equal(paceLabel(12), '5:00'); assert.equal(paceLabel(0), '—');
+});
+test('video date uses EU order and weather codes map to stable icon categories', () => {
+  assert.equal(workoutDateLabel(Date.UTC(2026,9,18,0,40), 'Asia/Taipei'), '18/10/2026 · 08:40');
+  assert.equal(weatherKind(0), 'clear');
+  assert.equal(weatherKind(2), 'partly-cloudy');
+  assert.equal(weatherKind(3), 'cloudy');
+  assert.equal(weatherKind(45), 'fog');
+  assert.equal(weatherKind(61), 'rain');
+  assert.equal(weatherKind(75), 'snow');
+  assert.equal(weatherKind(95), 'storm');
 });

@@ -134,3 +134,10 @@ See [workout library](WORKOUT_LIBRARY.md) for behavior and maintenance.
 - Saved version: `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_81bc99a9d4248191813691f61e24c1e8`.
 - My runs now offers Rename, Save name and Cancel in EN/ZH. Names are trimmed and limited to 200 characters. An owner-scoped PATCH updates only the display name; reopening uses that name without changing route data or the existing deduplication key. No schema migration is needed.
 - Validation: 33 tests, both type checks and production build passed. Local browser renamed a synthetic saved run, verified persistence after reload, switched EN/ZH, and verified cancellation discards the draft. No personal saved runs were modified during testing.
+
+## Rollback marker before vertical video — 2026-10-21
+
+- Git tag: `deploy-2026-10-21-pre-vertical-video`.
+- GitHub commit: `087ead62ae443382a0282e94308c7686d19ec5f9`.
+- Corresponding live Sites deployment: `appgdep_6ad7ff668b288191a5d5e93e05194202`.
+- This marker restores the application source from immediately before the 9:16 video export update. A Sites rollback should redeploy the saved version `appgprj_6ad2d91001c48191ad8ba7f132736f25~appgver_81bc99a9d4248191813691f61e24c1e8`; rolling Git code back alone does not change D1 data.

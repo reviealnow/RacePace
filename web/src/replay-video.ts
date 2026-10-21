@@ -3,17 +3,19 @@ import { createReplayPainter, VIDEO, videoFrame } from './replay-render';
 import { exportBasemap } from './export-basemap';
 import type { Workout } from './workout';
 import type { Language } from './i18n';
+import { workoutWeather } from './workout-weather';
 
-export const supportsMP4 = () => canEncodeVideo('avc', { width: VIDEO.width, height: VIDEO.height, bitrate: 3_000_000 });
+export const supportsMP4 = () => canEncodeVideo('avc', { width: VIDEO.width, height: VIDEO.height, bitrate: 6_000_000 });
 export async function exportReplay(workout: Workout, language: Language, includeMap: boolean, signal: AbortSignal, progress: (value: number) => void) {
   signal.throwIfAborted();
   if (!await supportsMP4()) throw new Error('unsupported');
   const map = await exportBasemap(workout, language, includeMap, signal);
+  const weather = workout.demo ? null : await workoutWeather(workout, signal);
   signal.throwIfAborted();
   const canvas = document.createElement('canvas'); canvas.width = VIDEO.width; canvas.height = VIDEO.height;
-  const paint = createReplayPainter(workout, language, map);
+  const paint = createReplayPainter(workout, language, map, weather);
   const output = new Output({ format: new Mp4OutputFormat({ fastStart: 'in-memory' }), target: new BufferTarget() });
-  const source = new CanvasSource(canvas, { codec: 'avc', bitrate: 3_000_000 });
+  const source = new CanvasSource(canvas, { codec: 'avc', bitrate: 6_000_000 });
   output.addVideoTrack(source, { frameRate: VIDEO.fps });
   const cancel = () => { void output.cancel().catch(() => {}); };
   signal.addEventListener('abort', cancel, { once: true });
